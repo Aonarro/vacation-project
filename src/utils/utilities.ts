@@ -9,16 +9,23 @@ export function getJwtSecret(): string {
 }
 
 export function generateAccessToken(email: string, roleId: number): string {
-	return jwt.sign({ email, roleId }, getJwtSecret(), { expiresIn: '5m' })
+	const token = jwt.sign({ email, roleId }, getJwtSecret(), {
+		expiresIn: '1min',
+	})
+
+	return token
 }
 
 export function generateRefreshToken(email: string, roleId: number): string {
-	return jwt.sign({ email, roleId }, getJwtSecret(), { expiresIn: '3d' })
+	const token = jwt.sign({ email, roleId }, getJwtSecret())
+
+	return token
 }
 
 export function verifyToken(token: string): any {
 	try {
-		return jwt.verify(token, getJwtSecret())
+		const decoded = jwt.verify(token, getJwtSecret())
+		return decoded
 	} catch (error) {
 		return null
 	}
