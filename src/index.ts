@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
 import AuthRoutes from './routes/auth-routes'
 
-dotenv.config()
 const server = express()
 
 server.use(
@@ -13,9 +11,8 @@ server.use(
 		credentials: true,
 	})
 )
+dotenv.config()
 server.use(express.json())
-
-const prisma = new PrismaClient()
 
 server.use(AuthRoutes)
 

@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { Request, Response } from 'express'
 import { loginSchema, registerSchema } from '../models/user-model'
 import { LoginInput, RegistrationInput } from '../types/types'
+import { generateAccessToken, generateRefreshToken } from '../utils/utilities'
 
 const prisma = new PrismaClient()
 
@@ -31,6 +32,7 @@ export const register = async (
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10)
+
 		const newUser = await prisma.user.create({
 			data: {
 				firstName,
@@ -41,8 +43,13 @@ export const register = async (
 			},
 		})
 
+		const accessToken = generateAccessToken(newUser.email, newUser.roleId)
+		const refreshToken = generateRefreshToken(newUser.email, newUser.roleId)
+
 		res.status(201).json({
 			message: 'Пользователь успешно зарегистрирован',
+			access_token: accessToken,
+			refresh_token: refreshToken,
 			user: newUser,
 		})
 	} catch (error) {
@@ -83,10 +90,21 @@ export const login = async (
 			return res.status(400).json({ error: 'Неправильный пароль' })
 		}
 
+		const accessToken = generateAccessToken(
+			existingUser.email,
+			existingUser.roleId
+		)
+		const refreshToken = generateRefreshToken(
+			existingUser.email,
+			existingUser.roleId
+		)
+
 		const { password: _, ...userInformation } = existingUser
 
 		res.status(200).json({
 			message: 'Пользователь успешно авторизован',
+			access_token: accessToken,
+			refresh_token: refreshToken,
 			user: userInformation,
 		})
 	} catch (error) {
