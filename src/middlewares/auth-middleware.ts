@@ -19,12 +19,9 @@ export async function authenticateToken(
 		}
 
 		const decoded = verifyToken(token)
-		console.log(decoded)
-
+		//Get new access token
 		if (!decoded) {
-			console.log(req.cookies)
 			const refreshToken = req.cookies.refreshToken
-			console.log(refreshToken)
 
 			if (!refreshToken) {
 				return res.sendStatus(401)
@@ -42,7 +39,8 @@ export async function authenticateToken(
 			)
 
 			res.setHeader('Authorization', `Bearer ${newAccessToken}`)
-
+			res.setHeader('Access-Control-Expose-Headers', 'Authorization')
+			req.user = refreshDecoded
 			next()
 		} else {
 			req.user = decoded

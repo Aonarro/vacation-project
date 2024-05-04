@@ -13,7 +13,6 @@ export type LoginInput = {
 interface DecodedUser {
 	id: string
 	username: string
-	// Add other properties returned by verifyToken function
 }
 
 declare global {

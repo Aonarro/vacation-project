@@ -17,7 +17,9 @@ export function generateAccessToken(email: string, roleId: number): string {
 }
 
 export function generateRefreshToken(email: string, roleId: number): string {
-	const token = jwt.sign({ email, roleId }, getJwtSecret())
+	const token = jwt.sign({ email, roleId }, getJwtSecret(), {
+		expiresIn: '2min',
+	})
 
 	return token
 }

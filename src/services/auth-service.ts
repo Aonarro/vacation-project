@@ -2,15 +2,12 @@ import { PrismaClient, User } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import { Request, Response } from 'express'
 import { loginSchema, registerSchema } from '../models/user-model'
-import { LoginInput, RegistrationInput } from '../types/types'
+import { LoginInput } from '../types/types'
 import { generateAccessToken, generateRefreshToken } from '../utils/utilities'
 
 const prisma = new PrismaClient()
 
-export const register = async (
-	req: Request<{}, {}, RegistrationInput>,
-	res: Response
-) => {
+export const registration = async (req: Request, res: Response) => {
 	try {
 		const { error } = registerSchema.validate(req.body)
 		if (error) {
@@ -46,11 +43,13 @@ export const register = async (
 		const accessToken = generateAccessToken(newUser.email, newUser.roleId)
 		const refreshToken = generateRefreshToken(newUser.email, newUser.roleId)
 
+		const { password: _, ...userInformation } = newUser
+
 		res.status(201).json({
 			message: 'Пользователь успешно зарегистрирован',
 			access_token: accessToken,
 			refresh_token: refreshToken,
-			user: newUser,
+			user: userInformation,
 		})
 	} catch (error) {
 		res.status(500).json({ error: 'Внутренняя ошибка сервера' })
@@ -105,6 +104,41 @@ export const login = async (
 			message: 'Пользователь успешно авторизован',
 			access_token: accessToken,
 			refresh_token: refreshToken,
+			user: userInformation,
+		})
+	} catch (error) {
+		res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+	}
+}
+
+export const autoLogin = async (req: Request, res: Response) => {
+	try {
+		console.log(req, res)
+
+		if (!req.user || !('email' in req.user)) {
+			return res
+				.status(400)
+				.json({ error: 'Email не найден авторизуйтесь заново' })
+		}
+
+		const email: string | undefined = req.user?.email as string | undefined
+
+		const existingUser: User | null = await prisma.user.findUnique({
+			where: {
+				email,
+			},
+		})
+
+		if (!existingUser) {
+			return res
+				.status(404)
+				.json({ error: 'Пользователь с таким email не найдено' })
+		}
+
+		const { password: _, ...userInformation } = existingUser
+
+		res.status(200).json({
+			message: 'Пользователь успешно авторизован',
 			user: userInformation,
 		})
 	} catch (error) {

@@ -9,13 +9,14 @@ const server = express()
 server.use(cookieParser())
 server.use(
 	cors({
-		origin: 'http://localhost:3000',
+		origin: 'http://localhost:5173',
 		credentials: true,
 	})
 )
 server.use(express.json())
 
-server.use(AuthRoutes)
+//Routes
+server.use('/api', AuthRoutes)
 
 server.listen(process.env.PORT, () => {
 	console.log(`Example server listening on port ${process.env.PORT}!`)
