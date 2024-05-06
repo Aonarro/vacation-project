@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import { DecodedUser } from '../types/types'
 import { generateAccessToken, verifyToken } from '../utils/utilities'
 
 export async function authenticateToken(
@@ -18,7 +19,7 @@ export async function authenticateToken(
 			return res.sendStatus(401)
 		}
 
-		const decoded = verifyToken(token)
+		const decoded: DecodedUser = verifyToken(token)
 		//Get new access token
 		if (!decoded) {
 			const refreshToken = req.cookies.refreshToken
@@ -27,7 +28,7 @@ export async function authenticateToken(
 				return res.sendStatus(401)
 			}
 
-			const refreshDecoded = verifyToken(refreshToken)
+			const refreshDecoded: DecodedUser = verifyToken(refreshToken)
 
 			if (!refreshDecoded) {
 				return res.sendStatus(401)

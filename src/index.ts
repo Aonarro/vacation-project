@@ -3,6 +3,8 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
 import AuthRoutes from './routes/auth-routes'
+import vacationRoutes from './routes/vacation-routes'
+
 dotenv.config()
 
 const server = express()
@@ -17,6 +19,7 @@ server.use(express.json())
 
 //Routes
 server.use('/api', AuthRoutes)
+server.use('/api/vacations', vacationRoutes)
 
 server.listen(process.env.PORT, () => {
 	console.log(`Example server listening on port ${process.env.PORT}!`)

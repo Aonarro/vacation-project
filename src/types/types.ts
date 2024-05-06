@@ -1,18 +1,6 @@
-export type RegistrationInput = {
-	firstName: string
-	lastName: string
+export interface DecodedUser {
 	email: string
-	password: string
-}
-
-export type LoginInput = {
-	email: string
-	password: string
-}
-
-interface DecodedUser {
-	id: string
-	username: string
+	roleId: number
 }
 
 declare global {
