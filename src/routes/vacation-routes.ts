@@ -20,7 +20,7 @@ router.get('/', authenticateToken, getAllVacations)
 router.get('/:id([0-9]+)', authenticateToken, getOneVacation)
 
 //upload new vacation
-router.post('/', authenticateToken, checkUserRole, postNewVacation)
+router.post('/new', authenticateToken, checkUserRole, postNewVacation)
 //edit vacation
 router.put('/:id([0-9]+)', authenticateToken, checkUserRole, editVacation)
 //delete vacation
