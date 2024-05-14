@@ -3,10 +3,12 @@ import { Request, Response } from 'express'
 
 const prisma = new PrismaClient()
 
-export const uploadImg = async (req: Request, res: Response) => {
+export const createVacation = async (req: Request, res: Response) => {
 	try {
 		const imageName = req.file?.filename
 		const newVacation = { ...req.body, imageName }
+
+		console.log(imageName)
 
 		const vacation = await prisma.vacation.create({
 			data: {
