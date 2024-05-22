@@ -24,7 +24,7 @@ export const registration = async (req: Request, res: Response) => {
 		if (existingUser) {
 			return res
 				.status(400)
-				.json({ error: 'A user with this email is already registered' })
+				.json('A user with this email is already registered')
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10)
@@ -45,13 +45,12 @@ export const registration = async (req: Request, res: Response) => {
 		const { password: _, ...userInformation } = newUser
 
 		res.status(201).json({
-			message: 'User successfully registered',
 			access_token: accessToken,
 			refresh_token: refreshToken,
 			user: userInformation,
 		})
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal Server Error')
 	}
 }
 
@@ -71,7 +70,7 @@ export const login = async (req: Request, res: Response) => {
 		})
 
 		if (!existingUser) {
-			return res.status(404).json({ error: 'User with this email not found' })
+			return res.status(404).json('User with this email not found')
 		}
 
 		const isPasswordCorrect = await bcrypt.compare(
@@ -80,7 +79,7 @@ export const login = async (req: Request, res: Response) => {
 		)
 
 		if (!isPasswordCorrect) {
-			return res.status(400).json({ error: 'Incorrect email or password' })
+			return res.status(400).json('Incorrect email or password')
 		}
 
 		const accessToken = generateAccessToken(
@@ -95,13 +94,12 @@ export const login = async (req: Request, res: Response) => {
 		const { password: _, ...userInformation } = existingUser
 
 		res.status(200).json({
-			message: 'The user is successfully authorized',
 			access_token: accessToken,
 			refresh_token: refreshToken,
 			user: userInformation,
 		})
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal Server Error')
 	}
 }
 
@@ -110,9 +108,7 @@ export const autoLogin = async (req: Request, res: Response) => {
 		console.log(req, res)
 
 		if (!req.user || !('email' in req.user)) {
-			return res
-				.status(400)
-				.json({ error: 'Email not found please log in again' })
+			return res.status(400).json('Email not found please log in again')
 		}
 
 		const email: string | undefined = req.user?.email as string | undefined
@@ -124,18 +120,15 @@ export const autoLogin = async (req: Request, res: Response) => {
 		})
 
 		if (!existingUser) {
-			return res
-				.status(404)
-				.json({ error: 'User with this email was not found' })
+			return res.status(404).json('User with this email was not found')
 		}
 
 		const { password: _, ...userInformation } = existingUser
 
 		res.status(200).json({
-			message: 'The user is successfully authorized',
 			user: userInformation,
 		})
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal Server Error')
 	}
 }

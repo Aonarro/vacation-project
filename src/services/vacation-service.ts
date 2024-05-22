@@ -1,71 +1,112 @@
 import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express'
-import { saveImage } from '../utils/file-utility-functions'
+import {
+	createVacationSchema,
+	updateVacationSchema,
+} from '../models/vacation-model'
 
 const prisma = new PrismaClient()
 
-interface NewVacation {
-	destination: string
-	description: string
-	startDate: Date
-	endDate: Date
-	price: number
-}
-
 export const getAllVacations = async (req: Request, res: Response) => {
 	try {
-		const id = +req.params.id
-		const vacation = await prisma.vacation.findUnique({
-			where: {
-				vacationId: id,
+		const page = parseInt(req.query.page as string) || 1
+		const pageSize = parseInt(req.query.pageSize as string) || 8
+
+		const sortBy = (req.query.sortBy as string) || 'startDate'
+		const sortOrder = (req.query.sortOrder as string) || 'asc'
+
+		const totalCount = await prisma.vacation.count()
+		const totalPages = Math.ceil(totalCount / pageSize)
+
+		const vacationsArray = await prisma.vacation.findMany({
+			take: pageSize,
+			skip: (page - 1) * pageSize,
+			include: {
+				Followers: true,
+			},
+			orderBy: {
+				[sortBy]: sortOrder,
 			},
 		})
-		res.json(vacation)
+
+		res.status(200).json({
+			vacationsArray,
+			page,
+			pageSize,
+			totalCount,
+			totalPages,
+		})
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal server error')
 	}
 }
 
-export const getOneVacation = async (req: Request, res: Response) => {
+export const createVacation = async (req: Request, res: Response) => {
 	try {
-		const id = +req.params.id
-		const vacation = await prisma.vacation.findUnique({
-			where: {
-				vacationId: id,
-			},
-		})
-		res.json(vacation)
-	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
-	}
-}
+		console.log(req.body)
+		const { error } = createVacationSchema.validate(req.body)
+		if (error) {
+			return res.status(400).json(error.details[0].message)
+		}
 
-export const postNewVacation = async (req: Request, res: Response) => {
-	try {
-		const { destination, description, startDate, endDate, price, image } =
-			req.body
+		const imageName = req.file?.filename
+		const newVacation = { ...req.body, imageName }
 
 		const vacation = await prisma.vacation.create({
 			data: {
-				destination,
-				description,
-				startDate,
-				endDate,
-				price,
-				imageName: image ? await saveImage(image) : null,
+				destination: newVacation.destination,
+				description: newVacation.description,
+				startDate: new Date(req.body.startDate),
+				endDate: new Date(req.body.endDate),
+				price: Number.parseFloat(req.body.price),
+				imageName: newVacation.imageName,
 			},
 		})
 
-		res.status(201).json(vacation)
+		res.sendStatus(201)
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.json(error)
 	}
 }
 
 export const editVacation = async (req: Request, res: Response) => {
 	try {
+		console.log(req.body)
+		const { error } = updateVacationSchema.validate(req.body)
+		if (error) {
+			return res.status(400).json(error.details[0].message)
+		}
+		const { id } = req.params
+		const imageName = req.file?.filename
+		const { destination, description, startDate, endDate, price } = req.body
+
+		const existingVacation = await prisma.vacation.findUnique({
+			where: { vacationId: +id },
+		})
+		if (!existingVacation) {
+			return res.status(404).json('Vacation not found')
+		}
+
+		let data: any = {
+			destination,
+			description,
+			startDate: new Date(startDate),
+			endDate: new Date(endDate),
+			price: Number.parseFloat(price),
+		}
+
+		if (imageName) {
+			data.imageName = imageName
+		}
+
+		const updatedVacation = await prisma.vacation.update({
+			where: { vacationId: +id },
+			data,
+		})
+
+		res.sendStatus(204)
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal Server Error')
 	}
 }
 
@@ -81,6 +122,6 @@ export const deleteVacation = async (req: Request, res: Response) => {
 
 		res.sendStatus(204)
 	} catch (error) {
-		res.status(500).json({ error: 'Internal Server Error' })
+		res.status(500).json('Internal Server Error')
 	}
 }
